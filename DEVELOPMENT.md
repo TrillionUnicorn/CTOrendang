@@ -21,7 +21,7 @@ npm install
 npm run dev
 
 # Open in browser
-open http://localhost:5177
+open http://localhost:5173
 ```
 
 ---
@@ -30,30 +30,38 @@ open http://localhost:5177
 
 ### Tech Stack
 - **Frontend**: SvelteKit 2 + Svelte 5 (Runes)
-- **Styling**: Tailwind CSS + shadcn-svelte
-- **TypeScript**: Full type safety
+- **Styling**: Tailwind CSS v4+ (no external UI libraries)
+- **Animations**: GSAP, Svelte-Motion, Lottie, Three.js
+- **TypeScript**: Full type safety (strict mode)
 - **Build Tool**: Vite 6
-- **Testing**: Vitest + Playwright
-- **AI Integration**: OpenAI API + Custom ML models
-- **Matching Algorithm**: Custom recommendation engine
+- **Testing**: Vitest + Playwright (to be implemented)
+- **AI Integration**: OpenAI API + Custom ML models (to be implemented)
+- **Matching Algorithm**: Custom recommendation engine (to be implemented)
 
 ### Folder Structure
 ```
 CTOrendang/
 ├── src/
 │   ├── lib/
-│   │   ├── components/          # Reusable UI components
-│   │   ├── stores/             # Svelte stores (state management)
-│   │   ├── utils/              # Utility functions
-│   │   ├── ai/                 # AI analysis modules
-│   │   ├── matching/           # CTO matching algorithms
-│   │   └── types/              # TypeScript type definitions
-│   ├── routes/                 # SvelteKit routes
-│   ├── app.html               # HTML template
-│   └── app.css                # Global styles
-├── static/                    # Static assets
-├── tests/                     # Test files
-└── docs/                      # Documentation
+│   │   ├── components/
+│   │   │   ├── ui/              # Reusable UI components
+│   │   │   └── sections/        # Page sections
+│   │   ├── data/                # Mock data and constants
+│   │   ├── utils/               # Utility functions
+│   │   ├── types/               # TypeScript type definitions
+│   │   ├── ai/                  # AI analysis modules (to be implemented)
+│   │   └── api/                 # API integration (to be implemented)
+│   ├── routes/
+│   │   ├── +page.svelte         # Home/Landing page
+│   │   ├── product/             # MVP Product page
+│   │   ├── pitch/               # Pitch Deck page
+│   │   └── contact/             # Contact Us page
+│   ├── app.html                 # HTML template
+│   └── app.css                  # Global styles with Tailwind
+├── static/                      # Static assets
+├── tailwind.config.js           # Tailwind CSS configuration
+├── postcss.config.js            # PostCSS configuration
+└── vite.config.ts               # Vite configuration
 ```
 
 ---
