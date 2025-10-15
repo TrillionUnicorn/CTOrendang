@@ -1,0 +1,354 @@
+// CTOrendang Production Database Schema
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  password      String?   // Hashed, nullable for OAuth users
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  sessions      Session[]
+  profile       Profile?
+  ctoProfile    CTOProfile?
+  projects      Project[]
+  bookings      Booking[]  @relation("UserBookings")
+  ctoBookings   Booking[]  @relation("CTOBookings")
+  messages      Message[]  @relation("SentMessages")
+  receivedMsgs  Message[]  @relation("ReceivedMessages")
+  reviews       Review[]   @relation("UserReviews")
+  givenReviews  Review[]   @relation("CTOReviews")
+  
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  USER      // Regular user/founder
+  CTO       // CTO offering services
+  ADMIN     // Platform admin
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  avatarUrl       String?
+  bio             String?
+  company         String?
+  website         String?
+  linkedin        String?
+  github          String?
+  twitter         String?
+  phone           String?
+  timezone        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("profiles")
+}
+
+model OAuthAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   // google, github, linkedin
+  providerUserId String
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+// ============================================
+// CTO PROFILES
+// ============================================
+
+model CTOProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  title           String   // e.g., "Former CTO at Stripe"
+  yearsExperience Int
+  hourlyRate      Int      // in USD
+  availability    Availability @default(AVAILABLE)
+  bio             String
+  skills          String[] // Array of skills
+  industries      String[] // Array of industries
+  techStack       String[] // Array of technologies
+  companiesLed    Int      @default(0)
+  teamSize        Int      @default(0)
+  verified        Boolean  @default(false)
+  featured        Boolean  @default(false)
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  successStories  SuccessStory[]
+  bookings        Booking[] @relation("CTOProfileBookings")
+  
+  @@index([availability])
+  @@index([hourlyRate])
+  @@index([rating])
+  @@map("cto_profiles")
+}
+
+enum Availability {
+  AVAILABLE
+  LIMITED
+  UNAVAILABLE
+}
+
+model SuccessStory {
+  id            String     @id @default(cuid())
+  ctoProfileId  String
+  title         String
+  description   String
+  company       String
+  outcome       String
+  metrics       String?    // JSON string of metrics
+  createdAt     DateTime   @default(now())
+  
+  ctoProfile    CTOProfile @relation(fields: [ctoProfileId], references: [id], onDelete: Cascade)
+  
+  @@index([ctoProfileId])
+  @@map("success_stories")
+}
+
+// ============================================
+// PROJECTS & AI ANALYSIS
+// ============================================
+
+model Project {
+  id              String   @id @default(cuid())
+  userId          String
+  title           String
+  description     String
+  industry        String
+  budget          String
+  status          ProjectStatus @default(ANALYZING)
+  
+  // AI Analysis Results
+  healthScore     Int?
+  complexity      String?
+  timeline        String?
+  estimatedBudget String?
+  techStack       String[] // Recommended tech stack
+  risks           String?  // JSON string
+  recommendations String?  // JSON string
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches         Match[]
+  
+  @@index([userId])
+  @@index([status])
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  ANALYZING
+  MATCHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Match {
+  id          String   @id @default(cuid())
+  projectId   String
+  ctoId       String
+  score       Float    // 0-100 match score
+  reasons     String[] // Why this CTO matches
+  status      MatchStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+  @@index([ctoId])
+  @@index([score])
+  @@map("matches")
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+// ============================================
+// BOOKINGS & PAYMENTS
+// ============================================
+
+model Booking {
+  id              String   @id @default(cuid())
+  userId          String
+  ctoId           String
+  ctoProfileId    String
+  title           String
+  description     String
+  startDate       DateTime
+  endDate         DateTime
+  hours           Int
+  hourlyRate      Int
+  totalAmount     Int
+  status          BookingStatus @default(PENDING)
+  
+  // Stripe
+  stripeSessionId String?
+  stripePaymentId String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+  cto             User     @relation("CTOBookings", fields: [ctoId], references: [id], onDelete: Cascade)
+  ctoProfile      CTOProfile @relation("CTOProfileBookings", fields: [ctoProfileId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([ctoId])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model Subscription {
+  id                String   @id @default(cuid())
+  userId            String
+  tier              SubscriptionTier
+  status            SubscriptionStatus
+  stripeCustomerId  String?
+  stripeSubscriptionId String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+  TRIALING
+}
+
+// ============================================
+// MESSAGING
+// ============================================
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String
+  read        Boolean  @default(false)
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ============================================
+// REVIEWS & RATINGS
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  ctoId       String
+  bookingId   String?
+  rating      Int      // 1-5
+  comment     String
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+  cto         User     @relation("CTOReviews", fields: [ctoId], references: [id], onDelete: Cascade)
+  
+  @@index([ctoId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// ============================================
+// ANALYTICS & LOGS
+// ============================================
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  metadata    String?  // JSON string
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+

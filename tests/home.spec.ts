@@ -3,10 +3,32 @@ import { test, expect } from '@playwright/test';
 test.describe('Home Page', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('networkidle');
 	});
 
 	test('should load successfully', async ({ page }) => {
 		await expect(page).toHaveTitle(/CTOrendang/);
+	});
+
+	test('should have correct background colors', async ({ page }) => {
+		// Check main background is dark slate
+		const body = page.locator('body');
+		const bgColor = await body.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+		// Should be dark (slate-900 or similar)
+		expect(bgColor).toMatch(/rgb\((15|17|23|30|31), (23|24|30|41|42), (42|43|51|59|60)\)/);
+	});
+
+	test('should have purple/pink gradient in hero', async ({ page }) => {
+		const hero = page.locator('h1').first();
+		await expect(hero).toBeVisible();
+		// Check for gradient text
+		const hasGradient = await hero.evaluate((el) => {
+			const style = window.getComputedStyle(el);
+			return style.backgroundImage.includes('gradient') ||
+			       el.className.includes('gradient') ||
+			       style.webkitBackgroundClip === 'text';
+		});
+		expect(hasGradient).toBeTruthy();
 	});
 
 	test('should display hero section', async ({ page }) => {
