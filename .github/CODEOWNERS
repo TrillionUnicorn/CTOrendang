@@ -1,0 +1,32 @@
+# Code Owners for CTOrendang
+
+# Default owners for everything
+* @HunterHo07
+
+# Documentation
+*.md @HunterHo07
+/docs/ @HunterHo07
+
+# Configuration files
+*.json @HunterHo07
+*.yml @HunterHo07
+*.yaml @HunterHo07
+
+# Database
+/prisma/ @HunterHo07
+
+# API Routes
+/src/routes/api/ @HunterHo07
+
+# Server code
+/src/lib/server/ @HunterHo07
+
+# Tests
+/tests/ @HunterHo07
+
+# Scripts
+/scripts/ @HunterHo07
+
+# CI/CD
+/.github/ @HunterHo07
+
