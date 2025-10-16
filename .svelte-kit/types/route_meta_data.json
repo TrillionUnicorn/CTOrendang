@@ -1,0 +1,9 @@
+{
+	"/": [],
+	"/contact": [],
+	"/health": [
+		"src/routes/health/+server.ts"
+	],
+	"/pitch": [],
+	"/product": []
+}
