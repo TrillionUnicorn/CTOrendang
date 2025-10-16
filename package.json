@@ -72,7 +72,7 @@
 		"@aws-sdk/s3-request-presigner": "^3.709.0",
 		"socket.io": "^4.8.1",
 		"socket.io-client": "^4.8.1",
-		"@sentry/sveltekit": "^8.42.0",
+		"@sentry/sveltekit": "^10.20.0",
 		"zod": "^3.24.1",
 		"bcrypt": "^5.1.1",
 		"nanoid": "^5.0.9",
