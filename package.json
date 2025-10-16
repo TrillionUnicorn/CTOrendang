@@ -75,7 +75,7 @@
 		"@sentry/sveltekit": "^8.42.0",
 		"zod": "^3.24.1",
 		"bcrypt": "^5.1.1",
-		"nanoid": "^5.0.9",
+		"nanoid": "^5.1.6",
 		"clsx": "^2.1.1",
 		"tailwind-merge": "^3.3.1"
 	},
