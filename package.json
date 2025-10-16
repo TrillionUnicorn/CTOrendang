@@ -64,7 +64,7 @@
 		"lucia": "^3.2.2",
 		"@lucia-auth/adapter-prisma": "^4.0.1",
 		"arctic": "^2.0.0",
-		"openai": "^4.77.0",
+		"openai": "^6.4.0",
 		"@pinecone-database/pinecone": "^4.0.0",
 		"stripe": "^18.5.0",
 		"resend": "^4.0.1",
